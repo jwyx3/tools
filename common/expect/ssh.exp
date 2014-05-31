@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+#
+# Usage: ssh.exp addr password command
+# addr = user@host
+#
+# Useful references:
+# - http://stackoverflow.com/questions/4780893/use-expect-in-bash-script-to-provide-password-to-ssh-command
+# - http://sourceforge.net/p/expect/discussion/41514/thread/3c7032db/
+
+# Set Variables
+set addr [lrange $argv 0 0]
+set password [lrange $argv 1 1]
+set command [lrange $argv 2 2]
+
+# Check prompt
+#set multiPrompt {[#>$]}
+
+set timeout -1
+# Run ssh
+eval spawn ssh -oStrictHostKeyChecking=no $addr $command
+match_max 100000
+# Expect passwod prompt
+expect "*assword*"
+# Send password
+send -- "$password\r"
+# Send \r to make sure that we get GUI
+send -- "\r"
+expect eof
+
+# This will wait for ssh to exit (if it hasn't already), and capture it's exit value.
+set waitval [wait -i $spawn_id]
+set exval [lindex $waitval 3]
+# The variable $exval contains the value from ssh
+exit $exval
